@@ -5,8 +5,9 @@ module ActionView
         extension = "js" if asset_type.to_s == "javascript"
         extension = "css" if asset_type.to_s == "stylesheet"
         directory ||= asset_type.to_s.pluralize
+        controller_path = controller.class.controller_path
 
-        asset_path = "#{RAILS_ROOT}/public/#{directory}/#{controller.controller_name}"
+        asset_path = "#{RAILS_ROOT}/public/#{directory}/#{controller_path}"
         puts asset_path
         if File.directory? asset_path
           paths = ["_shared", controller.action_name]
@@ -14,7 +15,7 @@ module ActionView
             puts File.join(asset_path, "#{source}")
             if File.exist?(File.join(asset_path, "#{source}.#{extension}"))
               puts "including..."
-              self.send("#{asset_type}_include_tag", "#{controller.controller_name}/#{source}.#{extension}") 
+              self.send("#{asset_type}_include_tag", "#{controller_path}/#{source}.#{extension}")
             end
           }.join("\n")
         end
