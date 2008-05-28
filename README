@@ -1,44 +1,47 @@
-JavascriptAutoInclude
+AssetAutoInclude
 =====================
+
+== Aknowledgements
+
+This plugin is based on the javascript_auto_include by Jamie Dyer. I just ripped
+it apart to make it suit my needs. Mainly, allow for inclusion of stylesheets and
+use a different nesting.
+
+If you want the original plugin:
+
+  http://github.com/kernow/javascript_auto_include/tree/master
+  http://hosting.media72.co.uk/blog/2008/05/13/asset-auto-include-rails-plugin/
 
 == Resources
 
-Install
- * Run the following command:
- script/plugin install http://kernowsoul.com/svn/plugins/javascript_auto_include
-
- * On EDGE rails you can run
- script/plugin install git://github.com/kernow/javascript_auto_include.git
+ script/plugin install git://github.com/evilchelu/asset_auto_include.git
  
 == Usage
 
  Add the following to the head of your template file
 
- <%= javascript_auto_include_tags %>
+ <%= asset_auto_include_tags :javascript %>
+ <%= asset_auto_include_tags :stylesheet %>
  
- Now each time the template is loaded javascript files in the public/javascripts/views
- folder that correspond to the name of the current controller or view will be auto
- loaded. For example:
+ Now each time the template is loaded asset files in the 
+ public/(javascripts|stylesheets)/ folder that correspond to the name of the
+ current controller or view will be auto loaded. For example:
 
  /public
    /javascripts
-     /views
-       users.js
-       /users
-         edit.js
-       roles.js
-       /accounts
-         show.js
+     /accounts
+       show.js
+
+ /public
+   /stylesheets
+     /users
+       _shared.css
+       edit.css
 
  Assuming the above file structure loading each of the following urls would load:
  
- mydomain.com/users             # loads users.js
- mydomain.com/users/edit/1      # loads users.js and edit.js
- mydomain.com/users/show/1      # loads users.js
- mydomain.com/roles             # loads roles.js
  mydomain.com/accounts          # no js files loaded
- mydomain.com/accounts/show/1   # loads show.js
+ mydomain.com/accounts/show/1   # loads accounts/show.js
+ mydomain.com/users             # loads users/_shared.css
+ mydomain.com/users/edit/1      # loads users/_shared.css and users/edi.css
 
-== More
-
-http://hosting.media72.co.uk/blog/2008/05/13/javascript-auto-include-rails-plugin/

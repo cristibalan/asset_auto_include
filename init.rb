@@ -1,1 +1,1 @@
-require 'javascript_auto_include'
+require 'asset_auto_include'
