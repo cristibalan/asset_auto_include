@@ -1,47 +1,62 @@
 AssetAutoInclude
 =====================
 
+== Resources
+
+  script/plugin install git://github.com/evilchelu/asset_auto_include.git
+ 
+== Usage
+
+Add the following to the head of your template file
+
+  <%= asset_auto_include_tags :javascript %>
+  <%= asset_auto_include_tags :stylesheet %>
+ 
+Now each time the template is loaded asset files in the 
+public/(javascripts|stylesheets)/ folder that correspond to the name of the
+current controller or view will be auto loaded. For example:
+
+  /public
+    /javascripts
+      /auto
+        /accounts
+          show.js
+
+  /public
+    /stylesheets
+      /auto
+        users.css
+        /users
+          edit.css
+
+Assuming the above file structure loading each of the following urls would load:
+ 
+ mydomain.com/accounts        # no js files loaded
+ mydomain.com/accounts/show/1 # loads auto/accounts/show.js
+ mydomain.com/users           # loads auto/users/users.css
+ mydomain.com/users/1/edit    # loads auto/users/users.css
+                                loads auto/users/edit.css
+
+There's also support for sass files. When using :stylesheet, the sass directory 
+is also checked, along with the stylesheets directory.
+
+  /public
+    /stylesheets
+      /sass
+        /auto
+          /posts
+            view.sass
+
+Assuming the above file structure loading each of the following urls would load:
+
+ mydomain.com/users/1           # loads auto/posts/view.css
+
 == Aknowledgements
 
-This plugin is based on the javascript_auto_include by Jamie Dyer. I just ripped
-it apart to make it suit my needs. Mainly, allow for inclusion of stylesheets and
-use a different nesting.
+This plugin was originally based on the javascript_auto_include by Jamie Dyer.
 
 If you want the original plugin:
 
   http://github.com/kernow/javascript_auto_include/tree/master
   http://hosting.media72.co.uk/blog/2008/05/13/asset-auto-include-rails-plugin/
-
-== Resources
-
- script/plugin install git://github.com/evilchelu/asset_auto_include.git
- 
-== Usage
-
- Add the following to the head of your template file
-
- <%= asset_auto_include_tags :javascript %>
- <%= asset_auto_include_tags :stylesheet %>
- 
- Now each time the template is loaded asset files in the 
- public/(javascripts|stylesheets)/ folder that correspond to the name of the
- current controller or view will be auto loaded. For example:
-
- /public
-   /javascripts
-     /accounts
-       show.js
-
- /public
-   /stylesheets
-     /users
-       _shared.css
-       edit.css
-
- Assuming the above file structure loading each of the following urls would load:
- 
- mydomain.com/accounts          # no js files loaded
- mydomain.com/accounts/show/1   # loads accounts/show.js
- mydomain.com/users             # loads users/_shared.css
- mydomain.com/users/edit/1      # loads users/_shared.css and users/edi.css
 
