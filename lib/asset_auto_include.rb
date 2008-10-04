@@ -10,29 +10,41 @@ module ActionView
         options = default_options.merge(options)
         case asset_type.to_s
           when "javascript"
-            options[:extension] ||= "js"
-            options[:directory] ||= asset_type.to_s.pluralize
             options[:method]    ||= "javascript_include_tag"
+            options[:extension] ||= "js"
+            options[:directory] ||= File.join("javascripts", "auto")
+            options[:template_extension] ||= options[:extension]
+            options[:template_directory] ||= options[:directory]
           when "stylesheet"
-            options[:extension] ||= "css"
-            options[:directory] ||= asset_type.to_s.pluralize
             options[:method]    ||= "stylesheet_link_tag"
+            options[:extension] ||= "css"
+            options[:directory] ||= File.join("stylesheets", "auto")
+            options[:template_extension] ||= "sass"
+            options[:template_directory] ||= File.join("stylesheets", "sass", "auto")
         end
+        to_include = []
 
+        asset_dir = File.join(RAILS_ROOT, "public", options[:directory])
+        template_asset_dir = File.join(RAILS_ROOT, "public", options[:template_directory])
         controller_path = controller.class.controller_path
+        action_asset = File.join(controller_path, controller.action_name)
+        shared_asset = controller_path
 
-        asset_path = "#{RAILS_ROOT}/public/#{options[:directory]}/#{controller_path}"
-        puts asset_path
-        if File.directory? asset_path
-          paths = ["_shared", controller.action_name]
-          paths.collect { |source|
-            puts File.join(asset_path, "#{source}")
-            if File.exist?(File.join(asset_path, "#{source}.#{options[:extension]}"))
-              puts "including..."
-              self.send("#{options[:method]}", "#{controller_path}/#{source}.#{options[:extension]}")
-            end
-          }.join("\n")
+        shared_path = File.join(asset_dir, "#{shared_asset}.#{options[:extension]}")
+        template_shared_path = File.join(template_asset_dir, "#{shared_asset}.#{options[:template_extension]}")
+        if File.exist?(shared_path) || File.exist?(template_shared_path)
+          to_include << File.join("auto", "#{shared_asset}.#{options[:extension]}")
         end
+
+        action_path = File.join(asset_dir, "#{action_asset}.#{options[:extension]}")
+        template_action_path = File.join(template_asset_dir, "#{action_asset}.#{options[:template_extension]}")
+        if File.exist?(action_path) || File.exist?(template_action_path)
+          to_include << File.join("auto", "#{action_asset}.#{options[:extension]}")
+        end
+
+        to_include.uniq.collect { |source|
+          self.send(options[:method], source)
+        }.join("\n")
       end
     end
   end
