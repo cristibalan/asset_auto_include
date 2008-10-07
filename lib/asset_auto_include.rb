@@ -25,6 +25,7 @@ module ActionView
         asset_dir = File.join(RAILS_ROOT, "public", options[:directory])
         template_asset_dir = File.join(RAILS_ROOT, "public", options[:template_directory])
 
+        # auto asset
         auto_asset = File.join(asset_dir, "#{options[:auto_dir]}.#{options[:extension]}")
         template_auto_asset = File.join(template_asset_dir, "#{options[:auto_dir]}.#{options[:template_extension]}")
         if File.exist?(auto_asset) || File.exist?(template_auto_asset)
@@ -33,16 +34,27 @@ module ActionView
 
         controller_path = controller.class.controller_path
         action_asset = File.join(controller_path, controller.action_name)
-        shared_asset = controller_path
 
-        shared_path = File.join(asset_dir, options[:auto_dir], "#{shared_asset}.#{options[:extension]}")
-        template_shared_path = File.join(template_asset_dir, options[:auto_dir], "#{shared_asset}.#{options[:template_extension]}")
-        if File.exist?(shared_path) || File.exist?(template_shared_path)
-          to_include << File.join(options[:auto_dir], "#{shared_asset}.#{options[:extension]}")
+        # namespaces & shared assets
+        parts = []
+        part = controller_path
+        while part != "." do
+          parts << part
+          part = File.dirname(part)
+        end
+        parts.reverse.each do |path|
+          shared_asset = path
+          shared_path = File.join(asset_dir, options[:auto_dir], "#{shared_asset}.#{options[:extension]}")
+          template_shared_path = File.join(template_asset_dir, options[:auto_dir], "#{shared_asset}.#{options[:template_extension]}")
+
+          if File.exist?(shared_path) || File.exist?(template_shared_path)
+            to_include << File.join(options[:auto_dir], "#{shared_asset}.#{options[:extension]}")
+          end
         end
 
-        action_path = File.join(asset_dir, options[:auto_dir], "#{action_asset}.#{options[:extension]}")
+        # current action asset
         template_action_path = File.join(template_asset_dir, options[:auto_dir], "#{action_asset}.#{options[:template_extension]}")
+        action_path = File.join(asset_dir, options[:auto_dir], "#{action_asset}.#{options[:extension]}")
         if File.exist?(action_path) || File.exist?(template_action_path)
           to_include << File.join(options[:auto_dir], "#{action_asset}.#{options[:extension]}")
         end
