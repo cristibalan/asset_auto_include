@@ -106,6 +106,22 @@ class AssetAutoIncludeTest < ActiveSupport::TestCase
     results = asset_auto_include_tags :javascript
     assert_equal(expected, results)
   end
+  def test_javascript_return_with_manual_from_controller_and_no_controller_or_action
+    @controller = Class.new do
+      def controller_path
+        'not_included'
+      end
+      def action_name
+        'not_here'
+      end
+    end.new   
+    ActionView::Helpers::AssetTagHelper::register_asset_auto_include 'manual',  :javascript
+    expected = "<!-- auto javascript -->\n"
+    expected += "<script src=\"/javascripts/manual.js\" type=\"text/javascript\"></script>\n"
+    expected += "<!-- /auto javascript -->"
+    results = asset_auto_include_tags :javascript
+    assert_equal(expected, results)
+  end
   def test_stylesheet_return_with_manual_and_no_controller_or_action
     @controller = Class.new do
       def controller_path
