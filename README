@@ -135,10 +135,39 @@ The following will register a file for both js and css
   
 In a controller you can use
  
-  ActionView::Helpers::AssetTagHelper::register_asset_auto_include 'manual' #registers both
+  AssetAutoInclude::register 'manual' #registers both javascript and stylesheet
   
-This would put <script src="/javascripts/manual.js"> in the header, after the javascript that is autoloaded from
-the views directory.
+This would put <script src="/javascripts/manual.js"> in the <head>, after the javascript that is autoloaded from
+the views directory.  It would also put <link href="/stylesheets/manual.css rel="stylesheet" type="text/css" /> in the <head>
+
+Registering from other plugins
+
+You can register a callback from AssetAutoInclude that will give another class the opportunity to manually add assets before the
+html is inserted.
+
+Include the following to the class
+
+  def initialize
+    AssetAutoInclude::register_callback(self)
+  end
+
+You can optionally add a second param of either :javascript or :stylesheet to include just one of those asset in the callback
+
+You must also include a function in the class to handle the callback
+
+  def auto_include_assets(asset_type, reset)
+       def self.auto_include_assets(asset_type, reset)
+        case asset_type
+        when :javascript
+          return 'klass'
+        when :stylesheet
+          return ['css_klass', 'no_klass']
+        end
+      end
+    
+  end
+
+
 == Aknowledgements
 
 This plugin was originally based on the javascript_auto_include by Jamie Dyer.

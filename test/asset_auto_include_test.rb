@@ -106,7 +106,7 @@ class AssetAutoIncludeTest < ActiveSupport::TestCase
     results = asset_auto_include_tags :javascript
     assert_equal(expected, results)
   end
-  def test_javascript_return_with_manual_from_controller_and_no_controller_or_action
+  def test_javascript_return_with_manual_not_from_view_and_no_controller_or_action
     @controller = Class.new do
       def controller_path
         'not_included'
@@ -115,7 +115,7 @@ class AssetAutoIncludeTest < ActiveSupport::TestCase
         'not_here'
       end
     end.new   
-    ActionView::Helpers::AssetTagHelper::register_asset_auto_include 'manual',  :javascript
+    AssetAutoInclude::register 'manual',  :javascript
     expected = "<!-- auto javascript -->\n"
     expected += "<script src=\"/javascripts/manual.js\" type=\"text/javascript\"></script>\n"
     expected += "<!-- /auto javascript -->"
@@ -212,6 +212,39 @@ class AssetAutoIncludeTest < ActiveSupport::TestCase
     expected += "<script src=\"/javascripts/manual.js\" type=\"text/javascript\"></script>\n"
     expected += "<!-- /auto javascript -->"
     results = asset_auto_include_tags :javascript
+    assert_equal(expected, results)
+  end
+  def test_callback_to_class
+    @klass = Class.new do
+      def initialize
+      AssetAutoInclude::register_callback(self)
+      end
+      def auto_include_assets(asset_type, reset)
+        case asset_type
+        when :javascript
+          return 'klass'
+        when :stylesheet
+          return ['css_klass', 'no_klass']
+        end
+      end
+    end.new
+    @controller = Class.new do
+      def controller_path
+        'not_included'
+      end
+      def action_name
+        'not_here'
+      end
+    end.new   
+    expected = "<!-- auto javascript -->\n"
+    expected += "<script src=\"/javascripts/klass.js\" type=\"text/javascript\"></script>\n"
+    expected += "<!-- /auto javascript -->"
+    expected += "<!-- auto stylesheet -->\n"
+    expected += "<link href=\"/stylesheets/css_klass.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />\n"
+    expected += "<link href=\"/stylesheets/no_klass.css\" media=\"screen\" rel=\"stylesheet\" type=\"text/css\" />\n"
+    expected += "<!-- /auto stylesheet -->"
+    results = asset_auto_include_tags :javascript
+    results += asset_auto_include_tags :stylesheet
     assert_equal(expected, results)
   end
 end

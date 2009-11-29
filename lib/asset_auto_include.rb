@@ -79,7 +79,7 @@ module ActionView
         end
 
         #add the manually added files and clear them out
-        @to_include |= ManualAsset::assets asset_type
+        @to_include |= AssetAutoInclude::assets asset_type
         
         "<!-- auto #{asset_type.to_s} -->\n#{
           @to_include.uniq.collect { |source|
@@ -89,57 +89,73 @@ module ActionView
       end
       
       def register_asset_auto_include(asset_name = "", asset_type = :both)
-        ManualAsset::register(asset_name, asset_type)
+        AssetAutoInclude::register(asset_name, asset_type)
       end
       
-      def self.register_asset_auto_include(asset_name = "", asset_type = :both)
-        ManualAsset::register(asset_name, asset_type)
-      end
-
-    private
-    def register_manual(asset_name = "", asset_type = :both)
-        if asset_name.empty?
-          return nil
-        end
-        if asset_type == :both
-          @@aai_manual[:javascript] << "#{asset_name}.#{@@aai_extension[:javascript]}"  
-          @@aai_manual[:stylesheet] << "#{asset_name}.#{@@aai_extension[:stylesheet]}"  
-        else
-          begin
-            @@aai_manual[asset_type] << "#{asset_name}.#{@@aai_extension[asset_type]}"
-          rescue
-            raise "#{asset_type} is not a valid asset type"
-          end
-        end
-        return nil
-    end
-
+#      def self.register_asset_auto_include(asset_name = "", asset_type = :both)
+#        AssetAutoInclude::register(asset_name, asset_type)
+#      end
     end
   end
 end
-class ManualAsset
-      @@aai_manual = {:javascript => [], :stylesheet => []}
-      @@aai_extension = {:javascript => 'js', :stylesheet => 'css'}
+
+class AssetAutoInclude
+  @@aai_manual = {:javascript => [], :stylesheet => []}
+  @@aai_extension = {:javascript => 'js', :stylesheet => 'css'}
+  @@callbacks = {:javascript => [], :stylesheet => []}
 
   def self.assets(asset_type, reset=true)
+    @@callbacks[asset_type].each { |klass| @@aai_manual[asset_type] << klass.auto_include_assets(asset_type, reset) }
+    @@callbacks[asset_type] = []
     assets = @@aai_manual[asset_type]
     @@aai_manual[asset_type]=[] if reset
     return assets
   end
   def self.register(asset_name = "", asset_type = :both)
-        if asset_name.empty?
-          return nil
-        end
-        if asset_type == :both
-          @@aai_manual[:javascript] << "#{asset_name}.#{@@aai_extension[:javascript]}"  
-          @@aai_manual[:stylesheet] << "#{asset_name}.#{@@aai_extension[:stylesheet]}"  
-        else
-          begin
-            @@aai_manual[asset_type] << "#{asset_name}.#{@@aai_extension[asset_type]}"
-          rescue
-            raise "#{asset_type} is not a valid asset type"
-          end
-        end
-        return nil    
+    if asset_name.empty?
+      return nil
+    end
+    if asset_type == :both
+      @@aai_manual[:javascript] << "#{asset_name}.#{@@aai_extension[:javascript]}"  
+      @@aai_manual[:stylesheet] << "#{asset_name}.#{@@aai_extension[:stylesheet]}"  
+    else
+      begin
+        @@aai_manual[asset_type] << "#{asset_name}.#{@@aai_extension[asset_type]}"
+      rescue
+        raise "#{asset_type} is not a valid asset type"
+      end
+    end
+    return nil    
+  end
+  def self.register_callback(klass, asset_type = :both)
+    if !klass
+      return nil
+    end
+    if asset_type == :both
+      @@callbacks[:javascript] << klass  
+      @@callbacks[:stylesheet] << klass
+    else
+      begin
+        @@callbacks[asset_type] << klass
+      rescue
+        raise "#{asset_type} is not a valid asset type"
+      end
+    end
+    return nil    
+  end
+end
+
+module AssetAutoIncludeModule
+  ##
+  # Declares a callback for AssetAutoInclude
+  # 
+  # optional param
+  # @param :javascript callback for javascript only
+  # @param :stylesheet callback for stylesheet only
+  #
+  # There should be a auto_include_assets function in the class where this is included
+  #
+  def asset_auto_include_callback(asset_type = :both)
+    AssetAutoInclude::register_callback(self, asset_type)
   end
 end
